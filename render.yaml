@@ -1,0 +1,95 @@
+# Render Blueprint — API SIGUE
+#
+# La web vive en Vercel; aquí solo se publica el contenedor de la API. El
+# contexto de build es la raíz del monorepo porque `apps/api/Dockerfile` copia
+# los `package.json` de los tres workspaces para que `npm ci` respete el lockfile.
+#
+# Lo que este archivo NO puede crear: la base de datos. PostgreSQL va en Neon
+# (ver `docs/DEPLOY-RENDER.md`) porque el PostgreSQL gratuito de Render caduca a
+# los 30 días y aquí se necesita `CREATEROLE` + `BYPASSRLS`, que el rol propietario
+# de Neon sí hereda.
+#
+# Las migraciones no se ejecutan aquí: `preDeployCommand` exige plan de pago y,
+# además, `db:setup-role` debe correr una sola vez con el rol propietario. Se
+# lanzan desde local con `npm run db:deploy` y `npm run db:setup-role`.
+
+services:
+  - type: web
+    name: sigue-api
+    runtime: docker
+    # `free` alcanza para la primera publicación: sin costo, con arranque en frío
+    # (~1 min) tras 15 min sin tráfico y sin disco persistente. Al pasar a
+    # `0.5c-512mb` ($7/mes) se puede añadir `disk:` para las evidencias.
+    plan: free
+    region: ohio
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/v1/health
+    autoDeployTrigger: commit
+    envVars:
+      # `production` activa cookies `Secure` (la web se sirve por HTTPS en
+      # Vercel) y el modo estricto de los adaptadores de correo y cobro.
+      - key: NODE_ENV
+        value: production
+
+      # Un salto de confianza: el proxy de Next en Vercel reenvía la IP del
+      # cliente en `x-forwarded-for`, y el rate limit debe contar por persona.
+      - key: TRUST_PROXY
+        value: "1"
+
+      # Primer origen de la lista = enlaces de invitación y de recuperación de
+      # contraseña. Cámbialo si añades un dominio propio.
+      - key: CORS_ORIGINS
+        value: https://sigue-web.vercel.app
+      - key: WEB_APP_URL
+        value: https://sigue-web.vercel.app
+
+      # Se piden al aplicar el blueprint (están en el panel de Neon). El primero
+      # usa el rol `sigue_app` (sujeto a RLS) y el segundo el rol propietario,
+      # que es el único que puede migrar y sembrar el catálogo.
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+
+      # Render los genera; la validación de entorno exige 32 caracteres como
+      # mínimo y que sean distintos entre sí.
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+
+      # Almacenamiento de archivos. Con `local` el disco es efímero: los adjuntos
+      # se pierden en cada despliegue y, además, la subida pasa por el proxy de la
+      # web (tope 4 MB). Con `azure` los archivos persisten y el navegador los
+      # sube directo al Blob con una URL firmada, sin límite práctico.
+      #
+      # La puesta en marcha (cuenta, contenedor y entidad de servicio) está en
+      # `docs/UPLOADS-AZURE.md`. El rol de la entidad de servicio se asigna a
+      # nivel de **cuenta de almacenamiento**, no de contenedor: firmar la URL de
+      # subida pide `generateUserDelegationKey`, que actúa sobre la cuenta.
+      #
+      # OJO con el orden al habilitarlo en un entorno nuevo: este valor viaja en
+      # el Blueprint Sync, pero las credenciales de abajo son `sync: false` y se
+      # ponen a mano en el panel. Si se pone `azure` antes de que existan, el
+      # arranque falla en la validación de entorno y el servicio no levanta.
+      - key: STORAGE_DRIVER
+        value: azure
+      # Sin uso con `azure`; se conserva para quien vuelva a `local`.
+      - key: STORAGE_DIR
+        value: /app/var/storage
+      # Tope de la subida directa (MB). No aplica con `local`.
+      - key: MAX_DIRECT_UPLOAD_MB
+        value: "250"
+      # Credenciales de la entidad de servicio para `DefaultAzureCredential`
+      # cuando la API no corre dentro de Azure.
+      - key: AZURE_STORAGE_ACCOUNT_URL
+        sync: false
+      - key: AZURE_STORAGE_CONTAINER
+        value: sigue-files
+      - key: AZURE_TENANT_ID
+        sync: false
+      - key: AZURE_CLIENT_ID
+        sync: false
+      - key: AZURE_CLIENT_SECRET
+        sync: false

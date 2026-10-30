@@ -1,0 +1,40 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "env": [
+        "NODE_ENV",
+        "DATABASE_URL",
+        "DIRECT_URL",
+        "JWT_ACCESS_SECRET",
+        "JWT_REFRESH_SECRET",
+        "NEXT_PUBLIC_API_URL",
+        "API_INTERNAL_URL"
+      ]
+    },
+    "test": {
+      "outputs": ["coverage/**"],
+      "env": [
+        "NODE_ENV",
+        "TEST_DATABASE_URL",
+        "DATABASE_URL",
+        "DIRECT_URL",
+        "JWT_ACCESS_SECRET",
+        "JWT_REFRESH_SECRET",
+        "MAIL_OUTBOX_DIR",
+        "STORAGE_DIR"
+      ]
+    },
+    "lint": {},
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "env": ["NODE_ENV", "DATABASE_URL", "DIRECT_URL"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}

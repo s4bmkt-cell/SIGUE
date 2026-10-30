@@ -1,0 +1,49 @@
+# Dependencias
+node_modules/
+.pnp
+.pnp.js
+
+# Caché de Turborepo
+.turbo/
+
+# Build
+dist/
+build/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# Entornos / secretos
+.env
+.env.*
+!.env.example
+**/secret*.txt
+credentials.txt
+
+# Buzón de correo local de desarrollo y archivos subidos
+var/
+
+# Playwright (reportes y estado de sesión de las pruebas)
+test-results/
+playwright-report/
+blob-report/
+e2e/.auth/
+
+# Logs
+*.log
+npm-debug.log*
+turbo-debug.log*
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Azure / Terraform
+*.tfstate*
+*.bicepparam.local.json
+
+# Vercel CLI (enlaces de proyecto y variables descargadas)
+.vercel/

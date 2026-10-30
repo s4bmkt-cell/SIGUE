@@ -1,0 +1,42 @@
+{
+  "name": "sigue",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SIGUE — Plataforma SaaS de Sistemas de Gestión ISO (monolito modular + Next.js)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "typecheck:e2e": "tsc -p e2e/tsconfig.json",
+    "db:generate": "npm run db:generate -w @sigue/api",
+    "db:migrate": "npm run db:migrate -w @sigue/api",
+    "db:seed": "npm run db:seed -w @sigue/api",
+    "db:catalog": "npm run db:catalog -w @sigue/api",
+    "db:provision": "npm run db:provision -w @sigue/api --",
+    "db:validate": "npm run db:validate -w @sigue/api",
+    "db:setup-role": "npm run db:setup-role -w @sigue/api",
+    "db:deploy": "npm run db:deploy -w @sigue/api"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.64.1",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^15.5.28",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "turbo": "^2.3.3",
+    "typescript-eslint": "^8.71.2"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "npm@11.13.0"
+}

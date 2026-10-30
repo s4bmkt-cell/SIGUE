@@ -1,0 +1,37 @@
+# Contexto de build para la imagen de la API (Render, Docker local).
+#
+# El Dockerfile compila desde cero: `npm ci` y `nest build` dentro de la imagen.
+# Todo lo que ya está en el disco del desarrollador sobra en el contexto y solo
+# engorda la subida (o, peor, mete binarios de Windows en una imagen Linux).
+
+# Dependencias y artefactos locales
+node_modules
+**/node_modules
+.turbo
+**/dist
+**/.next
+**/coverage
+**/*.tsbuildinfo
+
+# Datos de ejecución: buzón de correo, evidencias y reportes de pruebas
+var
+**/var
+test-results
+playwright-report
+blob-report
+e2e/.auth
+
+# Secretos y enlaces de proveedores
+.env
+.env.*
+**/.env
+**/.env.*
+.vercel
+**/secret*.txt
+
+# Metadatos que no aportan a la imagen
+.git
+.github
+.vscode
+.idea
+*.log
